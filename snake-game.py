@@ -67,28 +67,6 @@ class Snake:
         """
         return self.canvas.create_rectangle(x0, y0, x1, y1, fill=self.color, tags='snake')
 
-    def grow(self):
-        """
-        This method increments the snake size by '1', by adding a block to it.
-        The snake head co-ordinates are grabbed and used to decide the new block's coordinates based on current size
-        """
-        # tail coords
-        last_x0, last_y0, *rest  = self.canvas.coords(self.body[-1])
-        penultimate_x0, penultimate_y0, *rest = self.canvas.coords(self.body[-2])
-
-        # tail deslocation
-        vertical_desloc = penultimate_y0-last_y0
-        horizontal_desloc = penultimate_x0-last_x0            
-        
-        # added block coords
-        add_x0 = last_x0 - np.sign(horizontal_desloc)*UNIT_SIZE
-        add_x1 = last_x0 - 2*np.sign(horizontal_desloc)*UNIT_SIZE
-        add_y0 = last_y0 - np.sign(vertical_desloc)*UNIT_SIZE
-        add_y1 = last_y0 - 2*np.sign(vertical_desloc)*UNIT_SIZE
-
-        snake_block = self.create_block(add_x0, add_y0, add_x1, add_y1)
-        self.body.append(snake_block)
-
     '''
      move_* methods below control the snake's navigation. These functions are invoked based on user's key presses.
      Special checks are done in each of them to ensure invalid turns are blocked 
@@ -224,7 +202,6 @@ class Game:
 
     def handle_hit_food(self, food_id, snake):
         self.canvas.delete(food_id)
-        snake.grow()
         self.score += 1
         self.place_food()
 
