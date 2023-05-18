@@ -4,11 +4,11 @@ import random
 import numpy as np
 from agents import *
 
-CANVAS_WIDTH = 600  # Width of drawing canvas in pixels
-CANVAS_HEIGHT = 600  # Height of drawing canvas in pixels
-SPEED = 30  # Greater value here increases the speed of motion of the snakes
+CANVAS_WIDTH = 300  # Width of drawing canvas in pixels
+CANVAS_HEIGHT = 300  # Height of drawing canvas in pixels
+SPEED = 20  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 10  # Decides how thick the snake is
-INITIAL_SNAKE_SIZE = 10
+INITIAL_SNAKE_SIZE = 7
 
 
 class Snake:
