@@ -16,7 +16,12 @@ class Snake:
     This class defines the properties of a snake object for the game and contains methods for creating the snake,
     dynamically increasing its size and its movements
     """
-    def __init__(self, id, color, canvas):
+    def __init__(self, id, color, canvas, agent_type):
+        if (agent_type == "random"):
+                self.agent = RandomAgent()
+        elif (agent_type == "greedy"):
+                self.agent = GreedyAgent()
+             
         self.canvas = canvas
         self.id = id
         self.color = color
@@ -117,8 +122,8 @@ class Game:
     def __init__(self, root):
         self.root = root
         self.canvas = self.make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game')
-        self.snake1 = Snake(1, 'brown', self.canvas)
-        self.snake2 = Snake(2, 'green', self.canvas)
+        self.snake1 = Snake(1, 'brown', self.canvas, "random")
+        self.snake2 = Snake(2, 'green', self.canvas, "random")
         self.steps = 0
         self.score = 0
         self.game_over = False
@@ -170,7 +175,7 @@ class Game:
     def move_snake(self, snake):
         snake_moved = False
         while snake_moved == False:
-            direction = move_agent(snake)
+            direction = snake.agent.move_direction()
             snake_moved = snake.move(direction)
 
     def update_scores(self):
