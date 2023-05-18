@@ -20,7 +20,7 @@ class Snake:
         if (agent_type == "random"):
                 self.agent = RandomAgent()
         elif (agent_type == "greedy"):
-                self.agent = GreedyAgent()
+                self.agent = GreedyAgent(id)
              
         self.canvas = canvas
         self.id = id
@@ -75,6 +75,13 @@ class Snake:
          Each block is tagged as 'snake' to be accessed in future.
         """
         return self.canvas.create_rectangle(x0, y0, x1, y1, fill=self.color, tags='snake')
+    
+    def body_position(self):
+        position = []
+        for block in self.body:
+            position.append(self.canvas.coords(block)[:2])
+        
+        return position
 
     '''
      move_* methods below control the snake's navigation. These functions are invoked based on user's key presses.
@@ -128,6 +135,8 @@ class Game:
         self.canvas = self.make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game')
         self.snake1 = Snake(1, 'brown', self.canvas, "random")
         self.snake2 = Snake(2, 'green', self.canvas, "random")
+        self.food1 = 0
+        self.food2 = 0
         self.steps = 0
         self.score = 0
         self.game_over = False
@@ -175,7 +184,7 @@ class Game:
         x1 = random.randrange(2*UNIT_SIZE, CANVAS_WIDTH - UNIT_SIZE, step=UNIT_SIZE)
         y1 = random.randrange(2*UNIT_SIZE, CANVAS_HEIGHT - UNIT_SIZE, step=UNIT_SIZE)
         id = self.canvas.create_oval(x1, y1, x1 + UNIT_SIZE, y1 + UNIT_SIZE, fill= color, tags='food')
-        return id
+        return id, [x1, y1]
     
     def move_snake(self, snake):
         snake_moved = False
@@ -214,8 +223,12 @@ class Game:
         if (snake.food == food_id):
             self.canvas.delete(food_id)
             self.score += 1
-            new_id = self.place_food(snake.color)
+            new_id, position = self.place_food(snake.color)
             snake.new_food(new_id)
+            if (snake.id == 1):
+                self.food1 = position
+            else:
+                self.food2 = position
 
     def handle_hit_snake(self, snake):
         snake.death = "SNAKE"
@@ -263,24 +276,45 @@ class Game:
         widget.place_forget()
         self.canvas.update()  
 
+    def get_snake_positions(self):
+        position1 = self.snake1.body_position()
+        position2 = self.snake2.body_position()
+        return position1 + position2
+
+    def get_food_positions(self):
+        return [self.food1, self.food2]
+
+    def step(self):
+        self.move_snake(self.snake1)
+        self.move_snake(self.snake2)
+        self.steps+=1
+        self.canvas.update()
+        self.update_game()
+
+        positions = self.get_snake_positions()
+        positions += self.get_food_positions()
+
+        rewards = [0, 0]
+
+        done = self.game_over
+        return positions, rewards, done
+
     def play_game(self):
         self.display_label('Welcome to the Snake World!', 0.5)
-        id1 = self.place_food('brown')
-        id2 = self.place_food('green')
+        id1, food1 = self.place_food('brown')
+        id2, food2 = self.place_food('green')
 
+        self.food1 = food1
+        self.food2 = food2
         self.snake1.new_food(id1)
         self.snake2.new_food(id2)
 
         while not self.game_over:
         # Update World
-            self.move_snake(self.snake1)
-            self.move_snake(self.snake2)
-            self.steps+=1
-            self.canvas.update()
-            self.update_game()
-
+            self.step()
             time.sleep(1/SPEED)
         self.handle_game_over()
+
 
 def main():
     root = tkinter.Tk()

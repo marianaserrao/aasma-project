@@ -32,15 +32,10 @@ class RandomAgent(Agent):
 '''
 class GreedyAgent(Agent):
 
-    """
-    A baseline agent for the SimplifiedPredatorPrey environment.
-    The greedy agent finds the nearest prey and moves towards it.
-    """
-
-    def __init__(self, agent_id, n_agents):
+    def __init__(self, agent_id):
         super(GreedyAgent, self).__init__(f"Greedy Agent")
         self.agent_id = agent_id
-        self.n_agents = n_agents
+        self.n_agents = 2
         self.n_actions = 4
 
     def action(self) -> int:
