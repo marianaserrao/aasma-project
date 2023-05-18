@@ -30,6 +30,10 @@ class Snake:
         self.body = []
         self.death = None
         self.initialize_snake()
+        self.food = 0
+
+    def new_food(self, food_id):
+        self.food = food_id
 
     def initialize_snake(self):
         """
@@ -163,14 +167,15 @@ class Game:
             tags='score_board'
         )
 
-    def place_food(self):
+    def place_food(self, color):
         """
         Method to randomly place a circular 'food' object anywhere on Canvas.
         The tag on it is used for making decisions in the program
         """
         x1 = random.randrange(2*UNIT_SIZE, CANVAS_WIDTH - UNIT_SIZE, step=UNIT_SIZE)
         y1 = random.randrange(2*UNIT_SIZE, CANVAS_HEIGHT - UNIT_SIZE, step=UNIT_SIZE)
-        self.canvas.create_oval(x1, y1, x1 + UNIT_SIZE, y1 + UNIT_SIZE, fill='red', tags='food')
+        id = self.canvas.create_oval(x1, y1, x1 + UNIT_SIZE, y1 + UNIT_SIZE, fill= color, tags='food')
+        return id
     
     def move_snake(self, snake):
         snake_moved = False
@@ -206,9 +211,11 @@ class Game:
                 self.handle_hit_snake(snake)
 
     def handle_hit_food(self, food_id, snake):
-        self.canvas.delete(food_id)
-        self.score += 1
-        self.place_food()
+        if (snake.food == food_id):
+            self.canvas.delete(food_id)
+            self.score += 1
+            new_id = self.place_food(snake.color)
+            snake.new_food(new_id)
 
     def handle_hit_snake(self, snake):
         snake.death = "SNAKE"
@@ -258,8 +265,11 @@ class Game:
 
     def play_game(self):
         self.display_label('Welcome to the Snake World!', 0.5)
-        self.place_food()
-        self.place_food()
+        id1 = self.place_food('brown')
+        id2 = self.place_food('green')
+
+        self.snake1.new_food(id1)
+        self.snake2.new_food(id2)
 
         while not self.game_over:
         # Update World
