@@ -1,7 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-
 class Agent(ABC):
 
     """
@@ -41,6 +40,19 @@ class Agent(ABC):
 
     def see(self, observation: np.ndarray):
         self.observation = observation
+
+    def move_direction(self):
+        action = self.action()
+        if (action == 0):
+                direction = [0,-1]
+        elif (action == 1):
+                direction = [0,1]
+        elif (action == 2):
+                direction = [1,0]
+        elif (action == 3):
+                direction = [-1,0]
+        
+        return direction
 
     @abstractmethod
     def action(self) -> int:

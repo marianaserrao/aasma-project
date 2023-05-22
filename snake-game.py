@@ -79,8 +79,8 @@ class Snake:
     def body_position(self):
         position = []
         for block in self.body:
-            position.append(self.canvas.coords(block)[:2])
-        
+            pos = self.canvas.coords(block)[:2]
+            position.append([int(x) for x in pos])
         return position
 
     '''
@@ -133,8 +133,10 @@ class Game:
     def __init__(self, root):
         self.root = root
         self.canvas = self.make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game')
-        self.snake1 = Snake(1, 'brown', self.canvas, "random")
-        self.snake2 = Snake(2, 'green', self.canvas, "random")
+        #self.snake1 = Snake(1, 'brown', self.canvas, "random")
+        #self.snake2 = Snake(2, 'green', self.canvas, "random")
+        self.snake1 = Snake(1, 'brown', self.canvas, "greedy")
+        self.snake2 = Snake(2, 'green', self.canvas, "greedy")
         self.food1 = 0
         self.food2 = 0
         self.steps = 0
@@ -279,7 +281,7 @@ class Game:
     def get_snake_positions(self):
         position1 = self.snake1.body_position()
         position2 = self.snake2.body_position()
-        return position1 + position2
+        return [position1, position2]
 
     def get_food_positions(self):
         return [self.food1, self.food2]
@@ -291,16 +293,15 @@ class Game:
         self.canvas.update()
         self.update_game()
 
-        positions = self.get_snake_positions()
-        positions += self.get_food_positions()
-
+        snakes_pos = self.get_snake_positions()
+        food_pos = self.get_food_positions()
+        positions = [snakes_pos, food_pos]
         rewards = [0, 0]
 
         done = self.game_over
         return positions, rewards, done
 
-    def play_game(self):
-        self.display_label('Welcome to the Snake World!', 0.5)
+    def reset(self):
         id1, food1 = self.place_food('brown')
         id2, food2 = self.place_food('green')
 
@@ -309,9 +310,24 @@ class Game:
         self.snake1.new_food(id1)
         self.snake2.new_food(id2)
 
+        snakes_pos = self.get_snake_positions()
+        food_pos = self.get_food_positions()
+        positions = ([snakes_pos, food_pos])
+        rewards = [0, 0]
+
+        done = self.game_over
+        return positions, rewards, done
+
+    def play_game(self):
+        self.display_label('Welcome to the Snake World!', 0.5)
+        
+        observation = self.reset()
         while not self.game_over:
         # Update World
-            self.step()
+            #print("Observation: ", observation)
+            self.snake1.agent.see(observation)
+            self.snake2.agent.see(observation)
+            observation = self.step()
             time.sleep(1/SPEED)
         self.handle_game_over()
 
