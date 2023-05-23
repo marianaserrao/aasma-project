@@ -3,6 +3,7 @@ import tkinter
 import random
 import numpy as np
 from agents import *
+import argparse
 
 CANVAS_WIDTH = 300  # Width of drawing canvas in pixels
 CANVAS_HEIGHT = 300  # Height of drawing canvas in pixels
@@ -10,6 +11,27 @@ SPEED = 20  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 10  # Decides how thick the snake is
 INITIAL_SNAKE_SIZE = 7
 
+def create_team(agent_type, canvas):
+    if agent_type == "random":
+        return [Snake(1, 'brown', canvas, "random"), Snake(2, 'green', canvas, "random")]
+
+    elif agent_type == "greedy":
+        return [Snake(1, 'brown', canvas, "greedy"), Snake(2, 'green', canvas, "greedy")]
+
+    else:
+        print("Invalid agent type provided. Please refer to the README.md for further instructions")
+        exit()
+
+def make_canvas(width, height, title, root):
+        """
+        Method to create a canvas that acts as a base for all the objects in the game
+        """
+        root.minsize(width=width, height=height)
+        root.title(title)
+
+        canvas = tkinter.Canvas(root, width=width + 1, height=height + 1, bg='black')
+        canvas.pack(padx=10, pady=10)
+        return canvas
 
 class Snake:
     """
@@ -34,6 +56,9 @@ class Snake:
 
     def new_food(self, food_id):
         self.food = food_id
+
+    def new_canvas(self, canvas):
+        self.canvas = canvas
 
     def initialize_snake(self):
         """
@@ -130,13 +155,12 @@ class Game:
     The methods in it handle everything for the game right from instantiating the snakes, score_board to
     handling player controls, placing food, processing events happening during the game
     """
-    def __init__(self, root):
+    def __init__(self, root, snakes, canvas):
         self.root = root
-        self.canvas = self.make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game')
-        #self.snake1 = Snake(1, 'brown', self.canvas, "random")
-        #self.snake2 = Snake(2, 'green', self.canvas, "random")
-        self.snake1 = Snake(1, 'brown', self.canvas, "greedy")
-        self.snake2 = Snake(2, 'green', self.canvas, "greedy")
+        self.canvas = canvas
+        self.snake1 = snakes[0]
+        self.snake2 = snakes[1]
+        
         self.food1 = 0
         self.food2 = 0
         self.steps = 0
@@ -144,17 +168,16 @@ class Game:
         self.game_over = False
         self.create_boards()
         self.play_game()
+        
 
-    def make_canvas(self, width, height, title):
-        """
-        Method to create a canvas that acts as a base for all the objects in the game
-        """
-        self.root.minsize(width=width, height=height)
-        self.root.title(title)
+    def get_results(self):
+        death = None
+        if (self.snake1.death != None):
+            death = self.snake1.death
+        else:
+            death = self.snake2.death
 
-        canvas = tkinter.Canvas(self.root, width=width + 1, height=height + 1, bg='black')
-        canvas.pack(padx=10, pady=10)
-        return canvas
+        return [self.steps, self.score, death]
 
     def create_boards(self):
         """
@@ -245,16 +268,16 @@ class Game:
         if self.snake1.death or self.snake2.death:
             self.game_over=True
 
-    def handle_game_over(self):
+    def handle_episode_over(self):
         """
         Method to print out the final message and declare the winner based on player scores
         """
-        print("Game Over!")
+        print("Episode Over!")
         print(f"\nSteps: {self.steps} \nScore: {self.score} \nCase of death snake 1: {self.snake1.death} \nCase of death snake 2: {self.snake2.death} "
         )
         widget = tkinter.Label(
             self.canvas, 
-            text='Game Over!',
+            text='Episode Over!',
             fg='white', bg='black', 
             font=("Times", 20, 'bold'
         ))
@@ -329,14 +352,31 @@ class Game:
             self.snake2.agent.see(observation)
             observation = self.step()
             time.sleep(1/SPEED)
-        self.handle_game_over()
+        self.handle_episode_over()
 
 
 def main():
-    root = tkinter.Tk()
-    Game(root)
-    #root.destroy() # uncomment for automatic closure of the window after the game 
-    root.mainloop()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--episodes", type=int, default=30)
+    parser.add_argument("--agents", default="")
+    opt = parser.parse_args()
+    
+    if opt.agents == "all":
+        print("Compare results for different teams")
+
+        
+
+    else:
+        root = tkinter.Tk()
+        canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', root)
+
+        team = create_team(opt.agents, canvas)
+        run = Game(root, team, canvas)
+        #results = run.get_results()
+        #root.destroy() # uncomment for automatic closure of the window after the game 
+        root.mainloop()
+        
 
 if __name__ == '__main__':
     main()

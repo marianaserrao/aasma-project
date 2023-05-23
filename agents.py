@@ -1,8 +1,5 @@
 import random
 import numpy as np
-import argparse
-from gym import Env
-from typing import Sequence
 
 import math
 from scipy.spatial.distance import cityblock
