@@ -22,18 +22,20 @@ class RandomAgent(Agent):
 
 class GreedyAgent(Agent):
 
-    def __init__(self, agent_id):
+    def __init__(self, agent_id, debug):
         super(GreedyAgent, self).__init__(f"Greedy Agent")
         self.agent_id = agent_id
         self.n_agents = 2
         self.n_actions = 4
+        self.debug = debug
 
     def action(self) -> int:
         agents_positions = self.observation[0][0]
         agent_pos = agents_positions[self.agent_id-1]
         food_pos = self.observation[0][1][self.agent_id-1]
-        print("Agent: ", agent_pos[0])
-        print("Food: ", food_pos)
+        if self.debug:
+            print("Agent", self.agent_id, ": ", agent_pos[0])
+            print("Food", self.agent_id,": ", food_pos)
         return self.direction_to_go(agent_pos[0], food_pos)
 
 
@@ -58,18 +60,22 @@ class GreedyAgent(Agent):
         if distances[0] == 0:
             return self._close_vertically(distances)
         elif distances[0] > 0:
-            print("Direction: Right")
+            if self.debug:
+                print("Direction: Right")
             return RIGHT
         elif distances[0] < 0:
-            print("Direction: Left")
+            if self.debug:
+                print("Direction: Left")
             return LEFT
 
     def _close_vertically(self, distances):
         if distances[1] == 0:
             return self._close_horizontally(distances)
         elif distances[1] > 0:
-            print("Direction: UP")
+            if self.debug:
+                print("Direction: UP")
             return UP
         elif distances[1] < 0:
-            print("Direction: Down")
+            if self.debug:
+                print("Direction: Down")
             return DOWN

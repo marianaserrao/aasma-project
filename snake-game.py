@@ -11,12 +11,12 @@ SPEED = 20  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 10  # Decides how thick the snake is
 INITIAL_SNAKE_SIZE = 7
 
-def create_team(agent_type, canvas):
+def create_team(agent_type, canvas, debug):
     if agent_type == "random":
-        return [Snake(1, 'brown', canvas, "random"), Snake(2, 'green', canvas, "random")]
+        return [Snake(1, 'brown', canvas, "random", debug), Snake(2, 'green', canvas, "random", debug)]
 
     elif agent_type == "greedy":
-        return [Snake(1, 'brown', canvas, "greedy"), Snake(2, 'green', canvas, "greedy")]
+        return [Snake(1, 'brown', canvas, "greedy", debug), Snake(2, 'green', canvas, "greedy", debug)]
 
     else:
         print("Invalid agent type provided. Please refer to the README.md for further instructions")
@@ -38,11 +38,11 @@ class Snake:
     This class defines the properties of a snake object for the game and contains methods for creating the snake,
     dynamically increasing its size and its movements
     """
-    def __init__(self, id, color, canvas, agent_type):
+    def __init__(self, id, color, canvas, agent_type, debug):
         if (agent_type == "random"):
                 self.agent = RandomAgent()
         elif (agent_type == "greedy"):
-                self.agent = GreedyAgent(id)
+                self.agent = GreedyAgent(id, debug)
              
         self.canvas = canvas
         self.id = id
@@ -360,7 +360,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=30)
     parser.add_argument("--agents", default="")
+    parser.add_argument("--debug", default="")
     opt = parser.parse_args()
+
+    debug = False
+    if opt.debug == "true":
+        debug = True
     
     if opt.agents == "all":
         print("Compare results for different teams")
@@ -379,12 +384,13 @@ def main():
                 run = Game(new_root, team, new_canvas)
                 result = run.get_results()
                 new_root.destroy()
-                print(result)
+                if debug:
+                    print(result)
                 team_results += [result]
             
             results += [team_results]
-
-        print("Results: ", results)
+        if debug:
+            print("Results: ", results)
         '''
         compare_results(
             results,
@@ -396,7 +402,7 @@ def main():
         root = tkinter.Tk()
         canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', root)
 
-        team = create_team(opt.agents, canvas)
+        team = create_team(opt.agents, canvas, debug)
         run = Game(root, team, canvas)
         #results = run.get_results()
         #root.destroy() # uncomment for automatic closure of the window after the game 
