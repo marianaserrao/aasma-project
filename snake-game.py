@@ -365,7 +365,32 @@ def main():
     if opt.agents == "all":
         print("Compare results for different teams")
 
-        
+        teams = { "Random team": "random", "Greedy team": "greedy"}
+    
+        results = []
+        for team, agents in teams.items():
+            team_results = []
+            for episode in range(opt.episodes):
+                new_root = tkinter.Tk()
+                new_canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', new_root)
+
+                team = create_team(agents, new_canvas)
+
+                run = Game(new_root, team, new_canvas)
+                result = run.get_results()
+                new_root.destroy()
+                print(result)
+                team_results += [result]
+            
+            results += [team_results]
+
+        print("Results: ", results)
+        '''
+        compare_results(
+            results,
+            title="Teams Comparison on 'Snake Game' Environment",
+            colors=["orange", "green", "blue"]
+        )   '''
 
     else:
         root = tkinter.Tk()
