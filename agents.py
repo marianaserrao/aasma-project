@@ -5,7 +5,6 @@ import math
 from scipy.spatial.distance import cityblock
 
 from agent import Agent
-from utils import compare_results
 
 N_ACTIONS = 4
 DOWN, UP, RIGHT, LEFT = range(N_ACTIONS)

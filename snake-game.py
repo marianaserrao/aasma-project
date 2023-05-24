@@ -5,11 +5,36 @@ import numpy as np
 from agents import *
 import argparse
 
+from utils import compare_results
+from utils import plot_deaths
+
 CANVAS_WIDTH = 300  # Width of drawing canvas in pixels
 CANVAS_HEIGHT = 300  # Height of drawing canvas in pixels
 SPEED = 20  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 10  # Decides how thick the snake is
 INITIAL_SNAKE_SIZE = 7
+
+def results_by_type(results):
+    step_results = []
+    score_results = []
+    death_results = []
+    
+    for team in results:
+        team_step = []
+        team_score = []
+        team_death = []
+    
+        for result in team:
+            team_step += [result[0]]
+            team_score += [result[1]]
+            team_death += [result[2]]
+        
+        step_results += [team_step]
+        score_results += [team_score]
+        death_results += [team_death]
+    
+    return [step_results, score_results, death_results]
+
 
 def create_team(agent_type, canvas, debug):
     if agent_type == "random":
@@ -209,10 +234,8 @@ class Game:
         return id, [x1, y1]
     
     def move_snake(self, snake):
-        snake_moved = False
-        while snake_moved == False:
-            direction = snake.agent.move_direction()
-            snake_moved = snake.move(direction)
+        direction = snake.agent.move_direction()
+        snake_moved = snake.move(direction)
 
     def update_scores(self):
         self.canvas.itemconfig("score_board", text='Score : ' + str(self.score))
@@ -376,7 +399,7 @@ def main():
                 new_root = tkinter.Tk()
                 new_canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', new_root)
 
-                team = create_team(agents, new_canvas)
+                team = create_team(agents, new_canvas, debug)
 
                 run = Game(new_root, team, new_canvas)
                 result = run.get_results()
@@ -388,12 +411,29 @@ def main():
             results += [team_results]
         if debug:
             print("Results: ", results)
-        '''
+        
+        results = results_by_type(results)
+
+        colors=["orange", "green"]
+        
         compare_results(
-            results,
-            title="Teams Comparison on 'Snake Game' Environment",
-            colors=["orange", "green", "blue"]
-        )   '''
+            results[0],
+            title="Average Steps Comparison",
+            colors=colors,
+            metric="Steps per Episode"
+        ) 
+
+        compare_results(
+            results[1],
+            title="Average Score Comparison",
+            colors=colors,
+            metric="Score per Episode"
+        )
+
+        plot_deaths(
+            results[2],
+            colors=colors,
+        )
 
     else:
         root = tkinter.Tk()

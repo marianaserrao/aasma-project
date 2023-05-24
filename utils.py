@@ -121,8 +121,8 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
         Parameters
         ----------
 
-        results: dict
-            A dictionary where keys are the names and the values sequences of trials
+        results: list
+            
         confidence: float
             The confidence level for the confidence interval
         title: str
@@ -134,10 +134,10 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
 
         """
 
-    names = list(results.keys())
-    means = [result.mean() for result in results.values()]
-    stds = [result.std() for result in results.values()]
-    N = [result.size for result in results.values()]
+    names = ["Random", "Greedy"]
+    means = [np.mean(result) for result in results]
+    stds = [np.std(result) for result in results]
+    N = [len(result) for result in results]
 
     plot_confidence_bar(
         names=names,
@@ -149,5 +149,35 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
         confidence=confidence, show=True, colors=colors
     )
 
+def count_deaths(deaths):
+    death_counts = np.zeros((len(deaths), 2))
+
+    for i in range(len(deaths)):
+        for death in deaths[i]:
+            if death == "WALL":
+                death_counts[i][0] += 1 
+            elif death == "SNAKE":
+                death_counts[i][1] += 1
+    
+    return death_counts
+
+def plot_deaths(results, colors):
+    names = ["Random", "Greedy"]
+    teams = len(names)
+    deaths = ["WALL", "SNAKE"]
+    
+    values = count_deaths(results)
+
+    plt.figure(figsize=(9, 5))
+
+    for team in range(teams):
+        plot = plt.subplot(1, teams, team+1)
+        plt.xlabel("Loss Type")
+        plt.ylabel("Number of Occurrences")
+        plt.title(names[team])
+        plt.bar(deaths, values[team], color=colors[team])
+
+    plt.suptitle("Causes of Loss")
+    plt.show()
 
 
