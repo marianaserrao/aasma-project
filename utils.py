@@ -134,7 +134,7 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
 
         """
 
-    names = ["Random", "Greedy"]
+    names = ["Random", "Fuly Greedy", "Partially Greedy"]
     means = [np.mean(result) for result in results]
     stds = [np.std(result) for result in results]
     N = [len(result) for result in results]
@@ -162,7 +162,7 @@ def count_deaths(deaths):
     return death_counts
 
 def plot_deaths(results, colors):
-    names = ["Random", "Greedy"]
+    names = ["Random", "Fully Greedy", "Partially Greedy"]
     teams = len(names)
     deaths = ["WALL", "SNAKE"]
     

@@ -37,11 +37,9 @@ def results_by_type(results):
 
 
 def create_team(agent_type, canvas, debug):
-    if agent_type == "random":
-        return [Snake(1, 'brown', canvas, "random", debug), Snake(2, 'green', canvas, "random", debug)]
 
-    elif agent_type == "greedy":
-        return [Snake(1, 'brown', canvas, "greedy", debug), Snake(2, 'green', canvas, "greedy", debug)]
+    if agent_type in ["random", "fully_greedy", "part_greedy"]:
+        return [Snake(1, 'brown', canvas, agent_type, debug), Snake(2, 'green', canvas, agent_type, debug)]
 
     else:
         print("Invalid agent type provided. Please refer to the README.md for further instructions")
@@ -65,9 +63,11 @@ class Snake:
     """
     def __init__(self, id, color, canvas, agent_type, debug):
         if (agent_type == "random"):
-                self.agent = RandomAgent()
-        elif (agent_type == "greedy"):
-                self.agent = GreedyAgent(id, debug)
+            self.agent = RandomAgent()
+        elif (agent_type == "fully_greedy"):
+            self.agent = FullyGreedyAgent(id, debug)
+        elif (agent_type == "part_greedy"):
+            self.agent = PartiallyGreedyAgent(id, debug)
              
         self.canvas = canvas
         self.id = id
@@ -390,7 +390,7 @@ def main():
     if opt.agents == "all":
         print("Compare results for different teams")
 
-        teams = { "Random team": "random", "Greedy team": "greedy"}
+        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy"}
     
         results = []
         for team, agents in teams.items():
@@ -414,8 +414,8 @@ def main():
         
         results = results_by_type(results)
 
-        colors=["orange", "green"]
-        
+        colors=["orange", "green", "blue"]
+
         compare_results(
             results[0],
             title="Average Steps Comparison",
