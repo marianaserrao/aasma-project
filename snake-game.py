@@ -17,23 +17,27 @@ INITIAL_SNAKE_SIZE = 7
 def results_by_type(results):
     step_results = []
     score_results = []
+    efficiency_results = []
     death_results = []
     
     for team in results:
         team_step = []
         team_score = []
+        team_efficiency = []
         team_death = []
-    
+        
         for result in team:
             team_step += [result[0]]
             team_score += [result[1]]
+            team_efficiency += [result[1]/result[0]]
             team_death += [result[2]]
         
         step_results += [team_step]
         score_results += [team_score]
+        efficiency_results += [team_efficiency]
         death_results += [team_death]
     
-    return [step_results, score_results, death_results]
+    return [step_results, score_results, efficiency_results, death_results]
 
 
 def create_team(agent_type, canvas, debug):
@@ -413,7 +417,7 @@ def main():
             print("Results: ", results)
         
         results = results_by_type(results)
-
+        print(results)
         colors=["orange", "green", "blue"]
 
         compare_results(
@@ -430,8 +434,16 @@ def main():
             metric="Score per Episode"
         )
 
-        plot_deaths(
+        compare_results(
             results[2],
+            title="Score Efficiency Comparison",
+            colors=colors,
+            metric="Score/Steps per Episode"
+        )
+
+
+        plot_deaths(
+            results[3],
             colors=colors,
         )
 

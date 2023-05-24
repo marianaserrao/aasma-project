@@ -168,7 +168,7 @@ def plot_deaths(results, colors):
     
     values = count_deaths(results)
 
-    plt.figure(figsize=(9, 5))
+    plt.figure(figsize=(12, 5))
 
     for team in range(teams):
         plot = plt.subplot(1, teams, team+1)
