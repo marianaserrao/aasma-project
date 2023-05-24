@@ -125,9 +125,6 @@ class Snake:
         Similarly, the 3rd block takes the 2nd block position and so on.
         """
         move_x, move_y = direction
-
-        if (move_x != 0 and move_x == -self.direction_x) or (move_y != 0 and move_y == -self.direction_y):
-            return False
         
         self.direction_x=move_x
         self.direction_y=move_y
