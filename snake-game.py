@@ -42,7 +42,7 @@ def results_by_type(results):
 
 def create_team(agent_type, canvas, debug):
 
-    if agent_type in ["random", "fully_greedy", "part_greedy"]:
+    if agent_type in ["random", "fully_greedy", "part_greedy", "social_convention"]:
         return [Snake(1, 'brown', canvas, agent_type, debug), Snake(2, 'green', canvas, agent_type, debug)]
 
     else:
@@ -72,6 +72,9 @@ class Snake:
             self.agent = FullyGreedyAgent(id, debug)
         elif (agent_type == "part_greedy"):
             self.agent = PartiallyGreedyAgent(id, debug)
+        elif (agent_type == "social_convention"):
+            self.agent = SocialConventionAgent(id, debug)
+
              
         self.canvas = canvas
         self.id = id
@@ -394,7 +397,7 @@ def main():
     if opt.agents == "all":
         print("Compare results for different teams")
 
-        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy"}
+        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy", "Social Convention Team" : "social_convention"}
     
         results = []
         for team, agents in teams.items():
@@ -418,7 +421,7 @@ def main():
         
         results = results_by_type(results)
         print(results)
-        colors=["orange", "green", "blue"]
+        colors=["orange", "green", "blue", "red"]
 
         compare_results(
             results[0],

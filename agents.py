@@ -222,3 +222,81 @@ class PartiallyGreedyAgent(Agent):
         #If forced and in same y, randomize movement
         roll = random.uniform(0, 1)
         return UP if roll > 0.5 else DOWN
+
+
+class SocialConventionAgent(Agent):
+
+    def __init__(self, agent_id, debug):
+        super(SocialConventionAgent, self).__init__(f"Social Convention Agent")
+        self.agent_id = agent_id
+        self.n_agents = 2
+        self.n_actions = 4
+        self.debug = debug
+
+    def action(self) -> int:
+        agent_pos = self.observation[0][0][self.agent_id-1]
+        other_snake_pos = self.observation[0][0][self.agent_id%2]
+        food_pos = self.observation[0][1][self.agent_id-1]
+        if self.debug:
+            print("Agent", self.agent_id, ": ", agent_pos[0])
+            print("Food", self.agent_id,": ", food_pos)
+        return self.direction_to_go(agent_pos, other_snake_pos, food_pos)
+
+    def directions(self, distances,snake):
+        res = np.zeros(4)
+        if(distances[0] > 0 and (snake[0][0]+10) != snake[1][0]):
+            res[2] = 1
+        elif(distances[0] < 0 and (snake[0][0]-10) != snake[1][0]):
+            res[3] = 1
+        
+        if(distances[1] > 0 and (snake[0][1]+10) != snake[1][1]):
+            res[1] = 1
+        elif(distances[1] < 0 and (snake[0][1]-10) != snake[1][1]):
+            res[0] = 1
+        
+        return res
+
+    def calculate_distance(self, x1, y1,other_snake):
+        res = np.zeros(len(other_snake))
+        
+        for i in range(len(other_snake)):
+            res[i] = abs(other_snake[i][0] - x1) + abs(other_snake[i][1] - y1)
+
+        return np.min(res)
+
+    def check_distance(self, head, other_snake_pos):
+        res = np.zeros(4)
+        res[0] = self.calculate_distance(head[0],head[1]-10,other_snake_pos)
+        res[1] = self.calculate_distance(head[0],head[1]+10,other_snake_pos)
+        res[2] = self.calculate_distance(head[0]+10,head[1],other_snake_pos)
+        res[3] = self.calculate_distance(head[0]-10,head[1],other_snake_pos)
+
+        return res
+
+    def direction_to_go(self, agent_position, other_snake_pos, food_position):
+        """
+        Given the position of the agent and the position of a food,
+        returns the action to take in order to close the distance
+        """
+
+        distances = np.array(food_position) - np.array(agent_position[0])
+
+        direction_array = self.directions(distances,agent_position)
+
+        distance_array = self.check_distance(agent_position[0],other_snake_pos)
+
+        res = np.argmax(distance_array)
+
+
+        for i in range(4):
+            max_index = np.argmax(distance_array)
+            
+            if(direction_array[max_index] == 1):
+                return max_index
+            
+            distance_array[max_index] = 0
+
+        return res
+        
+
+        
