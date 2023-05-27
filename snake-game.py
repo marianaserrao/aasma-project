@@ -42,7 +42,7 @@ def results_by_type(results):
 
 def create_team(agent_type, canvas, debug):
 
-    if agent_type in ["random", "fully_greedy", "part_greedy", "social_convention"]:
+    if agent_type in ["random", "fully_greedy", "part_greedy", "social_convention", "intention_comm"]:
         return [Snake(1, 'brown', canvas, agent_type, debug), Snake(2, 'green', canvas, agent_type, debug)]
 
     else:
@@ -66,16 +66,7 @@ class Snake:
     dynamically increasing its size and its movements
     """
     def __init__(self, id, color, canvas, agent_type, debug):
-        if (agent_type == "random"):
-            self.agent = RandomAgent()
-        elif (agent_type == "fully_greedy"):
-            self.agent = FullyGreedyAgent(id, debug)
-        elif (agent_type == "part_greedy"):
-            self.agent = PartiallyGreedyAgent(id, debug)
-        elif (agent_type == "social_convention"):
-            self.agent = SocialConventionAgent(id, debug)
 
-             
         self.canvas = canvas
         self.id = id
         self.color = color
@@ -85,6 +76,19 @@ class Snake:
         self.death = None
         self.initialize_snake()
         self.food = 0
+        self.communicates = False
+
+        if (agent_type == "random"):
+            self.agent = RandomAgent()
+        elif (agent_type == "fully_greedy"):
+            self.agent = FullyGreedyAgent(id, debug)
+        elif (agent_type == "part_greedy"):
+            self.agent = PartiallyGreedyAgent(id, debug)
+        elif (agent_type == "social_convention"):
+            self.agent = SocialConventionAgent(id, debug)
+        elif (agent_type == "intention_comm"):
+            self.agent = IntentionCommunicationAgent(id, debug)
+            self.communicates = True
 
     def new_food(self, food_id):
         self.food = food_id
@@ -337,6 +341,14 @@ class Game:
         return [self.food1, self.food2]
 
     def step(self):
+        if (self.snake1.communicates and len(self.snake1.agent.intention) == 0):
+            intention = self.snake1.agent.make_new_intention()
+            self.snake2.agent.receive_intention(intention)
+            _ = self.snake2.agent.make_new_intention()
+        
+        if (self.snake2.communicates and len(self.snake2.agent.intention) == 0):
+            _ = self.snake2.agent.make_new_intention()
+
         self.move_snake(self.snake1)
         self.move_snake(self.snake2)
         self.steps+=1
@@ -397,7 +409,7 @@ def main():
     if opt.agents == "all":
         print("Compare results for different teams")
 
-        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy", "Social Convention Team" : "social_convention"}
+        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy", "Social Convention Team" : "social_convention", "Intention Communication Team" : "intention_comm"}
     
         results = []
         for team, agents in teams.items():
@@ -420,8 +432,7 @@ def main():
             print("Results: ", results)
         
         results = results_by_type(results)
-        print(results)
-        colors=["orange", "green", "blue", "red"]
+        colors=["orange", "green", "blue", "red", "black"]
 
         compare_results(
             results[0],

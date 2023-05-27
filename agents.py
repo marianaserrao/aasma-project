@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import heapq
 
 import math
 from scipy.spatial.distance import cityblock
@@ -297,6 +298,146 @@ class SocialConventionAgent(Agent):
             distance_array[max_index] = 0
 
         return res
+
+class IntentionCommunicationAgent(Agent):
+
+    def __init__(self, agent_id, debug):
+        super(IntentionCommunicationAgent, self).__init__(f"Intention Communication Agent")
+        self.agent_id = agent_id
+        self.n_agents = 2
+        self.n_actions = 4
+        self.debug = debug
+        self.intention = []
+        self.last_action = -1
+        if (agent_id == 2):
+            self.other_intention = []
+
+    def action(self) -> int:
+        agent_pos = self.observation[0][0][self.agent_id-1]
+        food_pos = self.observation[0][1][self.agent_id-1]
+
+        if len(self.intention) == 0:
+                action = self.last_action
+                while action == self.last_action:
+                    action = np.random.choice(np.arange(self.n_actions))
+
+        else:
+            action = self.direction_to_go(agent_pos)
+            
+        self.last_action = action
+        return action
+    
+    def make_new_intention(self):
+        agent_pos = self.observation[0][0][self.agent_id-1]
+        other_snake_pos = self.observation[0][0][self.agent_id%2]
+        food_pos = self.observation[0][1][self.agent_id-1]
+
+        if self.debug:
+            print("Agent", self.agent_id, ": ", agent_pos[0])
+            print("Food", self.agent_id,": ", food_pos)
+
+        agent_pos, snake_pos, food_pos = self.normalize_pos(agent_pos, other_snake_pos, food_pos)
+        intention = self.get_new_intention(agent_pos, snake_pos, food_pos)
+        if len(intention) != 0:
+            self.intention = self.restore_pos(intention)
         
+        if self.debug:
+            print("Intention", self.agent_id,": ", self.intention)
+        return self.intention
+
+    def receive_intention(self, other_intention):
+        self.other_intention = self.normalize_list(other_intention)
+
+    def direction_to_go(self, agent_pos):
+        next_pos = self.intention[0]
+        self.intention = self.intention[1:]
+        direction = next_pos - agent_pos[0]
+        if (self.debug):
+            print("Direction", self.agent_id, ": ",direction)
+        if direction[0]>0:
+            return RIGHT
+        elif direction[0]<0:
+            return LEFT
+        elif direction[1]>0:
+            return UP
+        elif direction[1]<0:
+            return DOWN
+
+    def get_new_intention(self, agent_pos, snake_pos, food_pos):
+        start_pos = agent_pos[0]
+        grid = np.zeros((30, 30))
+        
+        obstacles = []
+        for obstacle in agent_pos[1:]:
+            obstacles.append(obstacle)
+        
+        for obstacle in snake_pos:
+            obstacles.append(obstacle)
+
+        if (self.agent_id == 2):
+            for obstacle in self.other_intention:
+                obstacles.append(obstacle)
+
+        for obstacle in obstacles:
+            grid[int(obstacle[0])][int(obstacle[1])] = 1
+        
+        return self.shortestPath(grid, 0, start_pos, food_pos)
+
+    def normalize_list(self, list):
+        if len(list) == 0:
+            return []
+        normalized_list = np.zeros((len(list), len(list[0])))
+        for x in range(len(list)):
+            for y in range(2):
+                normalized_list[x][y] = int(list[x][y]//10)
+        
+        return normalized_list
+    def normalize_pos(self, agent_pos, snake_pos, food_pos):
+        normalized_agent = np.zeros((len(agent_pos), len(agent_pos[0])))
+        for x in range(len(agent_pos)):
+            for y in range(2):
+                normalized_agent[x][y] = int(agent_pos[x][y]//10)
+
+        normalized_food = np.zeros(len(food_pos))
+        for x in range(len(food_pos)):
+            normalized_food[x] = int(food_pos[x]//10)
+
+        normalized_snake = np.zeros((len(snake_pos), len(snake_pos[0])))
+        for x in range(len(snake_pos)):
+            for y in range(2):
+                normalized_snake[x][y] = int(snake_pos[x][y]//10)
+
+        return normalized_agent, normalized_snake, normalized_food
+
+    def restore_pos(self, path):
+        restored_path = np.zeros((len(path), len(path[0])))
+        for x in range(len(path)):
+            for y in range(2):
+                restored_path[x][y] = int(path[x][y]*10)
+        return restored_path
+
+    def shortestPath(self, grid, k, snake, fruit):
+        
+        m=len(grid)
+        n=len(grid[0])
+        visited=[[-1]*n for _ in range(m)]
+        lst=[(0,-1*k,int(snake[0]),int(snake[1]), [])]
+        visited[0][0]=1
+        row=[-1,1,0,0]
+        col=[0,0,-1,1]
+        heapq.heapify(lst)
+        while lst:
+            steps,k,x,y,path=heapq.heappop(lst)
+            k=-1*k
+            if x==int(fruit[0]) and y==int(fruit[1]):
+                return path
+            for i in range(4):
+                n_row=x+row[i]
+                n_col=y+col[i]
+                if n_row>=0 and n_row<m and n_col>=0 and n_col<n and k-grid[n_row][n_col]>=0:
+                    if visited[n_row][n_col]==-1 or (visited[n_row][n_col]!=-1 and (visited[n_row][n_col]<k)):
+                        heapq.heappush(lst,(steps+1,-1*(k-grid[n_row][n_col]),n_row,n_col, path+[[n_row, n_col]]))
+                        visited[n_row][n_col]=k-grid[n_row][n_col]
+        return []
 
         

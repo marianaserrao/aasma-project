@@ -101,7 +101,7 @@ def plot_confidence_bar(names, means, std_devs, N, title, x_label, y_label, conf
     ax.set_ylabel(y_label)
     ax.set_xlabel(x_label)
     ax.set_xticks(x_pos)
-    ax.set_xticklabels(names)
+    ax.set_xticklabels(names, fontsize=8)
     ax.set_title(title)
     ax.yaxis.grid(True)
     if yscale is not None:
@@ -134,7 +134,7 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
 
         """
 
-    names = ["Random", "Fuly Greedy", "Partially Greedy", "Social Convention"]
+    names = ["Random", "Fuly Greedy", "Partially Greedy", "Social Convention", "Intention Comm"]
     means = [np.mean(result) for result in results]
     stds = [np.std(result) for result in results]
     N = [len(result) for result in results]
@@ -162,13 +162,13 @@ def count_deaths(deaths):
     return death_counts
 
 def plot_deaths(results, colors):
-    names = ["Random", "Fully Greedy", "Partially Greedy", "Social Convention"]
+    names = ["Random", "Fully Greedy", "Partially Greedy", "Social Convention", "Intention Comm"]
     teams = len(names)
     deaths = ["WALL", "SNAKE"]
     
     values = count_deaths(results)
 
-    plt.figure(figsize=(12, 5))
+    plt.figure(figsize=(15, 5))
 
     for team in range(teams):
         plot = plt.subplot(1, teams, team+1)
