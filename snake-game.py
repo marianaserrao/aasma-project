@@ -42,7 +42,7 @@ def results_by_type(results):
 
 def create_team(agent_type, canvas, debug):
 
-    if agent_type in ["random", "fully_greedy", "part_greedy", "social_convention", "intention_comm"]:
+    if agent_type in ["random", "fully_greedy", "part_greedy", "social_convention", "intention_comm", "roles"]:
         return [Snake(1, 'brown', canvas, agent_type, debug), Snake(2, 'green', canvas, agent_type, debug)]
 
     else:
@@ -77,6 +77,7 @@ class Snake:
         self.initialize_snake()
         self.food = 0
         self.communicates = False
+        self.agent_type = agent_type
 
         if (agent_type == "random"):
             self.agent = RandomAgent()
@@ -89,6 +90,8 @@ class Snake:
         elif (agent_type == "intention_comm"):
             self.agent = IntentionCommunicationAgent(id, debug)
             self.communicates = True
+        elif agent_type == "roles":
+            self.agent = RoleAgent(id, debug)
 
     def new_food(self, food_id):
         self.food = food_id
@@ -276,15 +279,40 @@ class Game:
                 self.handle_hit_snake(snake)
 
     def handle_hit_food(self, food_id, snake):
-        if (snake.food == food_id):
+        if snake.food == food_id:
             self.canvas.delete(food_id)
             self.score += 1
             new_id, position = self.place_food(snake.color)
             snake.new_food(new_id)
-            if (snake.id == 1):
+            if snake.id == 1:
                 self.food1 = position
             else:
                 self.food2 = position
+
+            if self.snake1.agent_type == "roles":
+
+                snakes_pos = self.get_snake_positions()
+                food_pos = self.get_food_positions()
+                positions = [snakes_pos, food_pos]
+
+                self.snake1.agent.see((positions, [0, 0], False))
+                self.snake2.agent.see((positions, [0, 0], False))
+
+                if snake.id == 1:
+                    if self.snake1.agent.prio:
+                        path1 = self.snake1.agent.find_path()
+                        self.snake2.agent.setOtherPath(path1)
+                        self.snake2.agent.find_path()
+                    else:
+                        self.snake1.agent.find_path()
+
+                else:
+                    if self.snake2.agent.prio:
+                        path1 = self.snake2.agent.find_path()
+                        self.snake1.agent.setOtherPath(path1)
+                        self.snake1.agent.find_path()
+                    else:
+                        self.snake2.agent.find_path()
 
     def handle_hit_snake(self, snake):
         snake.death = "SNAKE"
@@ -380,10 +408,40 @@ class Game:
         done = self.game_over
         return positions, rewards, done
 
+    def check_distance(self, x1, x2, y1, y2):
+        return abs(x1 - x2) + abs(y1 - y2)
+
     def play_game(self):
         self.display_label('Welcome to the Snake World!', 0.5)
         
         observation = self.reset()
+        if self.snake1.agent_type == "roles":
+            if self.check_distance(
+                self.snake1.body_position()[0][0],
+                self.food1[0],
+                self.snake1.body_position()[0][1],
+                self.food1[1],
+            ) > self.check_distance(
+                self.snake2.body_position()[0][0],
+                self.food2[0],
+                self.snake2.body_position()[0][1],
+                self.food2[1],
+            ):
+                self.snake2.agent.setPrio()
+                self.snake1.agent.see(observation)
+                self.snake2.agent.see(observation)
+                path2 = self.snake2.agent.find_path()
+                self.snake1.agent.setOtherPath(path2)
+                path1 = self.snake1.agent.find_path()
+
+            else:
+                self.snake1.agent.setPrio()
+                self.snake1.agent.see(observation)
+                self.snake2.agent.see(observation)
+                path1 = self.snake1.agent.find_path()
+                self.snake2.agent.setOtherPath(path1)
+                path2 = self.snake2.agent.find_path()
+
         while not self.game_over:
         # Update World
             #print("Observation: ", observation)
@@ -409,7 +467,7 @@ def main():
     if opt.agents == "all":
         print("Compare results for different teams")
 
-        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy", "Social Convention Team" : "social_convention", "Intention Communication Team" : "intention_comm"}
+        teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy", "Social Convention Team" : "social_convention", "Intention Communication Team" : "intention_comm", "Roles Team": "roles"}
     
         results = []
         for team, agents in teams.items():
@@ -432,7 +490,7 @@ def main():
             print("Results: ", results)
         
         results = results_by_type(results)
-        colors=["orange", "green", "blue", "red", "black"]
+        colors=["orange", "green", "blue", "red", "black", "yellow"]
 
         compare_results(
             results[0],
