@@ -134,7 +134,7 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
 
         """
 
-    names = ["Random", "Fuly Greedy", "Partially Greedy", "Social Convention", "Intention Comm"]
+    names = ["Random", "Fully Greedy", "Partially Greedy", "Social Convention", "Intention Comm"]
     means = [np.mean(result) for result in results]
     stds = [np.std(result) for result in results]
     N = [len(result) for result in results]
@@ -168,10 +168,10 @@ def plot_deaths(results, colors):
     
     values = count_deaths(results)
 
-    plt.figure(figsize=(15, 5))
-
+    plt.figure(figsize=(18, 8))
     for team in range(teams):
-        plot = plt.subplot(1, teams, team+1)
+        plot = plt.subplot(2, 3, team+1)
+        
         plt.xlabel("Loss Type")
         plt.ylabel("Number of Occurrences")
         plt.title(names[team])
