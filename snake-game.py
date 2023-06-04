@@ -8,10 +8,10 @@ import argparse
 from utils import compare_results
 from utils import plot_deaths
 
-CANVAS_WIDTH = 300  # Width of drawing canvas in pixels
-CANVAS_HEIGHT = 300  # Height of drawing canvas in pixels
-SPEED = 20  # Greater value here increases the speed of motion of the snakes
-UNIT_SIZE = 10  # Decides how thick the snake is
+CANVAS_WIDTH = 600  # Width of drawing canvas in pixels
+CANVAS_HEIGHT = 600  # Height of drawing canvas in pixels
+SPEED = 15  # Greater value here increases the speed of motion of the snakes
+UNIT_SIZE = 20  # Decides how thick the snake is
 INITIAL_SNAKE_SIZE = 7
 
 def results_by_type(results):
@@ -386,7 +386,6 @@ class Game:
         observation = self.reset()
         while not self.game_over:
         # Update World
-            #print("Observation: ", observation)
             self.snake1.agent.see(observation)
             self.snake2.agent.see(observation)
             observation = self.step()

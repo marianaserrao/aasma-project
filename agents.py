@@ -9,6 +9,7 @@ from agent import Agent
 
 N_ACTIONS = 4
 DOWN, UP, RIGHT, LEFT = range(N_ACTIONS)
+UNIT_SIZE = 20
 
 class RandomAgent(Agent):
 
@@ -365,7 +366,7 @@ class IntentionCommunicationAgent(Agent):
 
     def get_new_intention(self, agent_pos, snake_pos, food_pos):
         start_pos = agent_pos[0]
-        grid = np.zeros((30, 30))
+        grid = np.zeros((60, 60))
         
         obstacles = []
         for obstacle in agent_pos[1:]:
@@ -389,23 +390,23 @@ class IntentionCommunicationAgent(Agent):
         normalized_list = np.zeros((len(list), len(list[0])))
         for x in range(len(list)):
             for y in range(2):
-                normalized_list[x][y] = int(list[x][y]//10)
+                normalized_list[x][y] = int(list[x][y]//UNIT_SIZE)
         
         return normalized_list
     def normalize_pos(self, agent_pos, snake_pos, food_pos):
         normalized_agent = np.zeros((len(agent_pos), len(agent_pos[0])))
         for x in range(len(agent_pos)):
             for y in range(2):
-                normalized_agent[x][y] = int(agent_pos[x][y]//10)
+                normalized_agent[x][y] = int(agent_pos[x][y]//UNIT_SIZE)
 
         normalized_food = np.zeros(len(food_pos))
         for x in range(len(food_pos)):
-            normalized_food[x] = int(food_pos[x]//10)
+            normalized_food[x] = int(food_pos[x]//UNIT_SIZE)
 
         normalized_snake = np.zeros((len(snake_pos), len(snake_pos[0])))
         for x in range(len(snake_pos)):
             for y in range(2):
-                normalized_snake[x][y] = int(snake_pos[x][y]//10)
+                normalized_snake[x][y] = int(snake_pos[x][y]//UNIT_SIZE)
 
         return normalized_agent, normalized_snake, normalized_food
 
@@ -413,7 +414,7 @@ class IntentionCommunicationAgent(Agent):
         restored_path = np.zeros((len(path), len(path[0])))
         for x in range(len(path)):
             for y in range(2):
-                restored_path[x][y] = int(path[x][y]*10)
+                restored_path[x][y] = int(path[x][y]*UNIT_SIZE)
         return restored_path
 
     def shortestPath(self, grid, k, snake, fruit):
