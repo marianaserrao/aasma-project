@@ -12,6 +12,7 @@ CANVAS_WIDTH = 600  # Width of drawing canvas in pixels
 CANVAS_HEIGHT = 600  # Height of drawing canvas in pixels
 SPEED = 15  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 20  # Decides how thick the snake is
+MAX_STEPS = 500 # Maximum steps in an episode
 INITIAL_SNAKE_SIZE = 7
 
 def results_by_type(results):
@@ -135,7 +136,7 @@ class Snake:
          Method to create a single block of each snake based on the coordinates passed to it.
          Each block is tagged as 'snake' to be accessed in future.
         """
-        return self.canvas.create_rectangle(x0, y0, x1, y1, fill=self.color, tags='snake')
+        return self.canvas.create_rectangle(x0, y0, x1, y1, fill=self.color, tags='snake_' + str(self.id))
     
     def body_position(self):
         position = []
@@ -248,7 +249,7 @@ class Game:
         direction = snake.agent.move_direction()
         snake_moved = snake.move(direction)
 
-    def update_scores(self):
+    def update_score_board(self):
         self.canvas.itemconfig("score_board", text='Score : ' + str(self.score))
         self.canvas.itemconfig("steps_board", text='Steps : ' + str(self.steps))
 
@@ -269,11 +270,15 @@ class Game:
 
         overlapping_objects = self.canvas.find_overlapping(x0+1, y0+1, x1-1, y1-1)
         for obj in overlapping_objects:
-            if 'food' in self.canvas.gettags(obj):
-                self.handle_hit_food(obj, snake)
+            overlapping_object_tags = self.canvas.gettags(obj)
+            if 'food' in overlapping_object_tags:
+                snake.death = "WALL"
                 break
-            elif 'snake' in self.canvas.gettags(obj):
-                self.handle_hit_snake(snake)
+            elif 'snake_'+str(snake.id) in overlapping_object_tags:
+                if "head" not in overlapping_object_tags:
+                    snake.death = "SELF"
+            elif 'snake_' in str(overlapping_object_tags):
+                snake.death = "SNAKE"
 
     def handle_hit_food(self, food_id, snake):
         if (snake.food == food_id):
@@ -286,17 +291,14 @@ class Game:
             else:
                 self.food2 = position
 
-    def handle_hit_snake(self, snake):
-        snake.death = "SNAKE"
-
-    def handle_hit_wall(self, snake):
-        snake.death = "WALL"
-
     def update_game(self):
         self.snake_check(self.snake1)
         self.snake_check(self.snake2)
-        self.update_scores()
+        self.update_score_board()
         if self.snake1.death or self.snake2.death:
+            self.game_over=True
+        elif self.steps == MAX_STEPS:
+            self.snake1.death = self.snake2.death = "MAX_STEPS"
             self.game_over=True
 
     def handle_episode_over(self):
