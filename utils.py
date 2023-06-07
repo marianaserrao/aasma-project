@@ -163,13 +163,13 @@ def plot_deaths(results, colors):
     
     values = count_deaths(results, deaths)
 
-    plt.figure(figsize=(18, 8))
+    plt.figure(figsize=(16, 10))
     for team in range(teams):
         plot = plt.subplot(2, 3, team+1)
         
-        plt.xlabel("Loss Type")
+        plt.xlabel("Loss Type", labelpad=1)
         plt.ylabel("Number of Occurrences")
-        plt.title(names[team])
+        plt.title(names[team], loc='left')
         plt.bar(deaths, values[team], color=colors[team])
 
     plt.suptitle("Causes of Loss")
