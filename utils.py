@@ -149,24 +149,19 @@ def compare_results(results, confidence=0.95, title="Agents Comparison", metric=
         confidence=confidence, show=True, colors=colors
     )
 
-def count_deaths(deaths):
-    death_counts = np.zeros((len(deaths), 2))
-
-    for i in range(len(deaths)):
-        for death in deaths[i]:
-            if death == "WALL":
-                death_counts[i][0] += 1 
-            elif death == "SNAKE":
-                death_counts[i][1] += 1
-    
+def count_deaths(results, death_causes):
+    death_counts = np.zeros((len(results), len(death_causes)))
+    for i in range(len(results)):
+        for death in results[i]:
+            death_counts[i][death_causes.index(death)]+=1    
     return death_counts
 
 def plot_deaths(results, colors):
     names = ["Random", "Fully Greedy", "Partially Greedy", "Social Convention", "Intention Comm"]
     teams = len(names)
-    deaths = ["WALL", "SNAKE"]
+    deaths = ["WALL", "SNAKE", "SELF", "MAX_STEPS"]
     
-    values = count_deaths(results)
+    values = count_deaths(results, deaths)
 
     plt.figure(figsize=(18, 8))
     for team in range(teams):

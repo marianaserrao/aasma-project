@@ -4,13 +4,14 @@ import random
 import numpy as np
 from agents import *
 import argparse
+from tqdm import tqdm
 
 from utils import compare_results
 from utils import plot_deaths
 
 CANVAS_WIDTH = 600  # Width of drawing canvas in pixels
 CANVAS_HEIGHT = 600  # Height of drawing canvas in pixels
-SPEED = 15  # Greater value here increases the speed of motion of the snakes
+SPEED = 500  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 20  # Decides how thick the snake is
 MAX_STEPS = 500 # Maximum steps in an episode
 INITIAL_SNAKE_SIZE = 7
@@ -266,13 +267,13 @@ class Game:
         x0, y0, x1, y1 = self.canvas.coords(snake_head_tag)
 
         if (x0 <= 0) or (y0 <= 0) or (x1 >= CANVAS_WIDTH) or (y1 >= CANVAS_HEIGHT):
-            self.handle_hit_wall(snake)
+            snake.death = "WALL"
 
         overlapping_objects = self.canvas.find_overlapping(x0+1, y0+1, x1-1, y1-1)
         for obj in overlapping_objects:
             overlapping_object_tags = self.canvas.gettags(obj)
             if 'food' in overlapping_object_tags:
-                snake.death = "WALL"
+                self.handle_hit_food(obj, snake)
                 break
             elif 'snake_'+str(snake.id) in overlapping_object_tags:
                 if "head" not in overlapping_object_tags:
@@ -305,7 +306,7 @@ class Game:
         """
         Method to print out the final message and declare the winner based on player scores
         """
-        print("Episode Over!")
+        print("\n\nEpisode Over!")
         print(f"\nSteps: {self.steps} \nScore: {self.score} \nCase of death snake 1: {self.snake1.death} \nCase of death snake 2: {self.snake2.death} "
         )
         widget = tkinter.Label(
@@ -401,6 +402,7 @@ def main():
     parser.add_argument("--episodes", type=int, default=30)
     parser.add_argument("--agents", default="")
     parser.add_argument("--debug", default="")
+    parser.add_argument("--ghost", default="")
     opt = parser.parse_args()
 
     debug = False
@@ -413,10 +415,12 @@ def main():
         teams = { "Random team": "random", "Fully Greedy team": "fully_greedy", "Partially Greedy team": "part_greedy", "Social Convention Team" : "social_convention", "Intention Communication Team" : "intention_comm"}
     
         results = []
-        for team, agents in teams.items():
+        for team, agents in tqdm(teams.items(), desc="Agent", leave=True):
             team_results = []
-            for episode in range(opt.episodes):
+            for episode in tqdm(range(opt.episodes), desc="Episode", position=0):
                 new_root = tkinter.Tk()
+                if opt.ghost: 
+                    new_root.withdraw()
                 new_canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', new_root)
 
                 team = create_team(agents, new_canvas, debug)
@@ -465,11 +469,12 @@ def main():
     else:
         root = tkinter.Tk()
         canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', root)
-
+        if opt.ghost:
+            root.withdraw()
         team = create_team(opt.agents, canvas, debug)
         run = Game(root, team, canvas)
-        #results = run.get_results()
-        #root.destroy() # uncomment for automatic closure of the window after the game 
+        if opt.ghost:
+            root.destroy()
         root.mainloop()
         
 
