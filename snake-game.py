@@ -11,7 +11,7 @@ from utils import plot_deaths
 
 CANVAS_WIDTH = 600  # Width of drawing canvas in pixels
 CANVAS_HEIGHT = 600  # Height of drawing canvas in pixels
-SPEED = 500  # Greater value here increases the speed of motion of the snakes
+SPEED = 15  # Greater value here increases the speed of motion of the snakes
 UNIT_SIZE = 20  # Decides how thick the snake is
 MAX_STEPS = 500 # Maximum steps in an episode
 INITIAL_SNAKE_SIZE = 7
