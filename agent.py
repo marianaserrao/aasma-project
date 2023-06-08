@@ -37,6 +37,7 @@ class Agent(ABC):
     def __init__(self, name: str):
         self.name = name
         self.observation = None
+        self.training = True
 
     def see(self, observation: np.ndarray):
         self.observation = observation
@@ -57,3 +58,9 @@ class Agent(ABC):
     @abstractmethod
     def action(self) -> int:
         raise NotImplementedError()
+
+    def train(self):
+        self.training = True
+
+    def eval(self):
+        self.training = False

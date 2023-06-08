@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import heapq
+from collections import defaultdict
 
 import math
 from scipy.spatial.distance import cityblock
@@ -442,3 +443,64 @@ class IntentionCommunicationAgent(Agent):
         return []
 
         
+class QLearning(Agent):
+
+    def __init__(self, n_actions, learning_rate=0.3, discount_factor=0.3, exploration_rate=0.15, initial_q_values=0.0):
+        self._Q = defaultdict(lambda: np.ones(n_actions) * initial_q_values)
+        self._learning_rate = learning_rate
+        self._discount_factor = discount_factor
+        self._exploration_rate = exploration_rate
+        self._n_actions = n_actions
+        super(QLearning, self).__init__("Q-Learning")
+
+    def action(self, explore=True):
+
+        x = tuple()
+
+        for i in self.observation[0][0]:
+            if len(i) == 1:
+                x += tuple(i[0])
+            else:
+                x += tuple(i)
+        for i in self.observation[0][1]:
+            x += tuple(i)
+
+        q_values = self._Q[x]
+
+        if not self.training or (self.training and np.random.uniform(0, 1) > self._exploration_rate):
+            # Exploit
+            actions = np.argwhere(q_values == np.max(q_values)).reshape(-1)
+        else:
+            # Explore
+            actions = range(self._n_actions)
+            
+        return np.random.choice(actions)
+
+    def next(self, observation, action, next_observation, reward, terminal, info):
+
+        a, r =action, reward
+        alpha, gamma = self._learning_rate, self._discount_factor
+
+        x = tuple()
+        for i in self.observation[0][0]:
+            if len(i) == 1:
+                x += tuple(i[0])
+            else:
+                x += tuple(i)
+        for i in self.observation[0][1]:
+            x += tuple(i)
+        
+        y = tuple()
+        for i in self.observation[0][0]:
+            if len(i) == 1:
+                y += tuple(i[0])
+            else:
+                y += tuple(i)
+        for i in self.observation[0][1]:
+            y += tuple(i)
+
+
+        Q_xa, Q_y = self._Q[x][a], self._Q[y]
+        max_Q_ya = max(Q_y)
+
+        self._Q[x][a] = self._Q[x][a] +  alpha * (r + gamma * max_Q_ya - self._Q[x][a])
