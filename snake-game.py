@@ -17,6 +17,15 @@ MAX_STEPS = 500 # Maximum steps in an episode
 INITIAL_SNAKE_SIZE = 7
 
 def results_by_type(results):
+    """
+    Organizes the given results into separate lists based on their types.
+
+    Args:
+        results (list): List of team results, where each team result is a list of individual episode results.
+
+    Returns:
+        list: A list containing separate lists for each metric (steps, scores, efficiency, deaths).
+    """
     step_results = []
     score_results = []
     efficiency_results = []
@@ -43,7 +52,9 @@ def results_by_type(results):
 
 
 def create_team(agent_type, canvas, debug):
-
+    """
+    Creates a team of two snakes based on the specified agent type.
+    """
     if agent_type in ["random", "fully_greedy", "part_greedy", "social_convention", "intention_comm"]:
         return [Snake(1, 'brown', canvas, agent_type, debug), Snake(2, 'green', canvas, agent_type, debug)]
 
@@ -52,23 +63,35 @@ def create_team(agent_type, canvas, debug):
         exit()
 
 def make_canvas(width, height, title, root):
-        """
-        Method to create a canvas that acts as a base for all the objects in the game
-        """
-        root.minsize(width=width, height=height)
-        root.title(title)
+    """
+    Creates a canvas that serves as the base for all the objects in the game.
+    """
+    root.minsize(width=width, height=height)
+    root.title(title)
 
-        canvas = tkinter.Canvas(root, width=width + 1, height=height + 1, bg='black')
-        canvas.pack(padx=10, pady=10)
-        return canvas
+    canvas = tkinter.Canvas(root, width=width + 1, height=height + 1, bg='black')
+    canvas.pack(padx=10, pady=10)
+    return canvas
 
 class Snake:
     """
-    This class defines the properties of a snake object for the game and contains methods for creating the snake,
-    dynamically increasing its size and its movements
+    Represents a snake object in the game.
+
+    Attributes:
+        id (int): The identifier for the snake.
+        color (str): The color of the snake.
+        canvas (tkinter.Canvas): The canvas on which the snake is displayed.
+        agent_type (str): The type of agent controlling the snake.
+        debug (bool): A flag indicating whether debug mode is enabled or not.
+        direction_x (int): The horizontal direction of the snake's movement (-1 for left, 1 for right).
+        direction_y (int): The vertical direction of the snake's movement (-1 for up, 1 for down).
+        body (list): A list of object IDs representing the snake's body blocks.
+        death: Placeholder for the snake's death status.
+        food (int): The ID of the food the snake is currently targeting.
+        communicates (bool): Indicates whether the snake can communicate with other snakes.
+
     """
     def __init__(self, id, color, canvas, agent_type, debug):
-
         self.canvas = canvas
         self.id = id
         self.color = color
@@ -93,20 +116,20 @@ class Snake:
             self.communicates = True
 
     def new_food(self, food_id):
+        """
+        Sets the ID of the food the snake is targeting.
+        """
         self.food = food_id
 
     def new_canvas(self, canvas):
+        """
+        Updates the canvas on which the snake is displayed.
+        """
         self.canvas = canvas
 
     def initialize_snake(self):
         """
-         Method to instantiate the initial snake :
-         Each Snake is instantiated as a chain of squares appearing as a single long creature.
-
-         This method creates a circular head(tagged as 'snake_<num>' and 'head' for future reference)
-         and n no.of blocks based on start_snake_size.
-
-         Each snake block is stored as an object in the list body[]
+        Initializes the snake's body by creating the head and initial blocks.
         """
         initial_x = (INITIAL_SNAKE_SIZE - 1)*UNIT_SIZE
         initial_y = self.id*CANVAS_HEIGHT / 3 - UNIT_SIZE
@@ -134,33 +157,29 @@ class Snake:
 
     def create_block(self, x0, y0, x1, y1):
         """
-         Method to create a single block of each snake based on the coordinates passed to it.
-         Each block is tagged as 'snake' to be accessed in future.
+        Creates a single block for the snake based on the given coordinates.
         """
         return self.canvas.create_rectangle(x0, y0, x1, y1, fill=self.color, tags='snake_' + str(self.id))
     
     def body_position(self):
+        """
+        Retrieves the current positions of the snake's body blocks.
+
+        Returns:
+            list: A list of lists containing the x and y coordinates of each body block.
+        """
         position = []
         for block in self.body:
             pos = self.canvas.coords(block)[:2]
             position.append([int(x) for x in pos])
         return position
 
-    '''
-     move_* methods below control the snake's navigation. These functions are invoked based on user's key presses.
-     Special checks are done in each of them to ensure invalid turns are blocked 
-     (Ex: Block right turn if the snake is currently going to the left, and so on)
-    '''
     def move(self, direction):
         """
-        In each frame, the snake's position is grabbed in a dictionary chain_position{}.
-        'Key:Value' pairs here are each of the 'Snake_block(Object ID):Its coordinates'.
+        Moves the snake in the specified direction.
 
-        Algorithm to move snake:
-        1) The ‘snake head’ is repositioned based on the player controls.
-        2) The block following the snake head is programmed to take
-        snake head’s previous position in the subsequent frame.
-        Similarly, the 3rd block takes the 2nd block position and so on.
+        Args:
+            direction (tuple): A tuple containing the horizontal and vertical movement values (move_x, move_y).
         """
         move_x, move_y = direction
         
@@ -182,13 +201,25 @@ class Snake:
         self.canvas.move(snake_head_tag, self.direction_x * UNIT_SIZE, self.direction_y * UNIT_SIZE)
 
     def get_head_tag(self):
+        """
+        Returns the tag of the snake's head.
+        """
         return 'snake_' + str(self.id) + '&&head'
 
 class Game:
     """
-    Creates a canvas and contains attributes for all the objects on the Canvas(food, score_board, etc).
-    The methods in it handle everything for the game right from instantiating the snakes, score_board to
-    handling player controls, placing food, processing events happening during the game
+    Represents the game environment.
+
+    Attributes:
+        root (tkinter.Tk): The root window of the game.
+        canvas (tkinter.Canvas): The canvas on which the game objects are displayed.
+        snake1 (Snake): The first snake in the game.
+        snake2 (Snake): The second snake in the game.
+        food1 (int): The ID of the first food object (targeted by snake 1).
+        food2 (int): The ID of the second food object (targeted by snake 2).
+        steps (int): The number of steps taken in the game.
+        score (int): The score of the game.
+        game_over (bool): Indicates whether the game is over or not.
     """
     def __init__(self, root, snakes, canvas):
         self.root = root
@@ -204,8 +235,13 @@ class Game:
         self.create_boards()
         self.play_game()
         
-
     def get_results(self):
+        """
+        Returns the results of the game.
+
+        Returns:
+            list: A list containing the number of steps, the score, and the cause of death of the snake.
+        """
         death = None
         if (self.snake1.death != None):
             death = self.snake1.death
@@ -216,7 +252,7 @@ class Game:
 
     def create_boards(self):
         """
-        Method to position score_board text on the canvas
+        Positions score and steps boards on the canvas
         """
         y_offset = 0.02
         self.canvas.create_text(
@@ -238,8 +274,13 @@ class Game:
 
     def place_food(self, color):
         """
-        Method to randomly place a circular 'food' object anywhere on Canvas.
-        The tag on it is used for making decisions in the program
+        Randomly places a circular 'food' object anywhere on the canvas.
+        
+        Args:
+            color (str): The color of the food object.
+        
+        Returns:
+            tuple: A tuple containing the ID of the created food object and its position as [x, y].
         """
         x1 = random.randrange(2*UNIT_SIZE, CANVAS_WIDTH - UNIT_SIZE, step=UNIT_SIZE)
         y1 = random.randrange(2*UNIT_SIZE, CANVAS_HEIGHT - UNIT_SIZE, step=UNIT_SIZE)
@@ -247,21 +288,23 @@ class Game:
         return id, [x1, y1]
     
     def move_snake(self, snake):
+        """
+        Moves the specified snake based on its agent's move direction.
+        """
         direction = snake.agent.move_direction()
-        snake_moved = snake.move(direction)
+        snake.move(direction)
 
     def update_score_board(self):
+        """
+        Updates score and steps boards in the canvas
+        """
         self.canvas.itemconfig("score_board", text='Score : ' + str(self.score))
         self.canvas.itemconfig("steps_board", text='Steps : ' + str(self.steps))
 
     def snake_check(self, snake):
         """
-        Method to handle events during the Snake's motion.
-        Makes use of 'tags' given to each object to filter out what's overlapping.
-
-        1. Hit food --> Check if the hit object is food: If yes, eat it, increment snake size and delete food object
-        2. Hit wall --> Check if Snake head went past the wall coordinates: If yes, kill snake
-        3. Hit snake --> Check if Snake hit itself or other snake: If yes, kill this snake
+        Handles events during the snake's motion.
+        Checks for collisions with food, wall, self or other snakes.
         """
         snake_head_tag = snake.get_head_tag()
         x0, y0, x1, y1 = self.canvas.coords(snake_head_tag)
@@ -282,6 +325,10 @@ class Game:
                 snake.death = "SNAKE"
 
     def handle_hit_food(self, food_id, snake):
+        """
+        Handles the event when a snake hits a food object. 
+        If it is the snakes targeted food, deletes current food and creates a new one.
+        """
         if (snake.food == food_id):
             self.canvas.delete(food_id)
             self.score += 1
@@ -293,6 +340,10 @@ class Game:
                 self.food2 = position
 
     def update_game(self):
+        """
+        Updates the game state by checking for collisions, updating the score board,
+        and determining if the game is over.
+        """
         self.snake_check(self.snake1)
         self.snake_check(self.snake2)
         self.update_score_board()
@@ -304,7 +355,7 @@ class Game:
 
     def handle_episode_over(self):
         """
-        Method to print out the final message and declare the winner based on player scores
+        Prints out the final results.
         """
         print("\n\nEpisode Over!")
         print(f"\nSteps: {self.steps} \nScore: {self.score} \nCase of death snake 1: {self.snake1.death} \nCase of death snake 2: {self.snake2.death} "
@@ -320,7 +371,7 @@ class Game:
 
     def display_label(self, message, display_time):
         """
-        Method to display introductory messages on screen before the start of the game
+        Displays messages on the canvas.
         """
         widget = tkinter.Label(
             self.canvas, 
@@ -336,14 +387,28 @@ class Game:
         self.canvas.update()  
 
     def get_snake_positions(self):
+        """
+        Retrieves the positions of both snakes.
+        """
         position1 = self.snake1.body_position()
         position2 = self.snake2.body_position()
         return [position1, position2]
 
     def get_food_positions(self):
+        """
+        Retrieves the positions of the food objects.
+        """
         return [self.food1, self.food2]
 
     def step(self):
+        """
+        Performs a single step in the game.
+        Moves both snakes, updates the steps counter, and updates the game state.
+
+        Returns:
+            tuple: A tuple containing the positions of the snakes and food objects, rewards for each snake,
+                and a boolean indicating if the game is over.
+        """
         if (self.snake1.communicates and len(self.snake1.agent.intention) == 0):
             intention = self.snake1.agent.make_new_intention()
             self.snake2.agent.receive_intention(intention)
@@ -367,6 +432,16 @@ class Game:
         return positions, rewards, done
 
     def reset(self):
+        """
+        Resets the game to its initial state.
+
+        Creates new food objects, updates the snake's food IDs and positions,
+        and retrieves the positions of the snakes and food objects.
+
+        Returns:
+            tuple: A tuple containing the positions of the snakes and food objects, rewards for each snake,
+                and a boolean indicating if the game is over.
+        """
         id1, food1 = self.place_food('brown')
         id2, food2 = self.place_food('green')
 
@@ -384,20 +459,22 @@ class Game:
         return positions, rewards, done
 
     def play_game(self):
+        """
+        Plays the game until one of the snakes dies or the maximum number of steps is reached.
+        """
         self.display_label('Welcome to the Snake World!', 0.5)
         
         observation = self.reset()
         while not self.game_over:
-        # Update World
+            # move snakes and update game
             self.snake1.agent.see(observation)
             self.snake2.agent.see(observation)
             observation = self.step()
             time.sleep(1/SPEED)
         self.handle_episode_over()
 
-
 def main():
-
+    # Parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=30)
     parser.add_argument("--agents", default="")
@@ -418,6 +495,7 @@ def main():
         for team, agents in tqdm(teams.items(), desc="Agent", leave=True):
             team_results = []
             for episode in tqdm(range(opt.episodes), desc="Episode", position=0):
+                # Create a new root and canvas for each episode
                 new_root = tkinter.Tk()
                 if opt.ghost: 
                     new_root.withdraw()
@@ -436,6 +514,7 @@ def main():
         if debug:
             print("Results: ", results)
         
+        # Analyze and compare the results
         results = results_by_type(results)
         colors=["orange", "green", "blue", "red", "black"]
 
@@ -467,6 +546,7 @@ def main():
         )
 
     else:
+        # Create a root and canvas for a single-team game
         root = tkinter.Tk()
         canvas = make_canvas(CANVAS_WIDTH, CANVAS_HEIGHT, 'Snake Game', root)
         if opt.ghost:
